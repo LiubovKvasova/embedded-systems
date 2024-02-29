@@ -6,7 +6,7 @@ services:
     container_name: postgres_db
     restart: always
     environment:
-      POSTGRES_USER: user
+      POSTGRES_USER: testuser
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: test_db
     volumes:
@@ -40,7 +40,7 @@ services:
       - postgres_db
     restart: always
     environment:
-      POSTGRES_USER: user
+      POSTGRES_USER: testuser
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: test_db
       POSTGRES_HOST: postgres_db

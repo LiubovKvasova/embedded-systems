@@ -120,15 +120,37 @@ async def send_data_to_subscribers(user_id: int, data):
         for websocket in subscriptions[user_id]:
             await websocket.send_json(json.dumps(data))
 
+# Map ProcessedAgentData to plain dictionary
+def agent_data_to_dict(data: ProcessedAgentData) -> dict:
+    agent_data = data.agent_data
+
+    return {
+        "road_state": data.road_state,
+        "user_id": agent_data.user_id,
+        "x": agent_data.accelerometer.x,
+        "y": agent_data.accelerometer.y,
+        "z": agent_data.accelerometer.z,
+        "latitude": agent_data.gps.latitude,
+        "longitude": agent_data.gps.longitude,
+        "timestamp": agent_data.timestamp
+    }
 
 # FastAPI CRUDL endpoints
 
 
 @app.post("/processed_agent_data/")
 async def create_processed_agent_data(data: List[ProcessedAgentData]):
-    # Insert data to database
-    # Send data to subscribers
-    pass
+    with SessionLocal() as session:
+        for instance in data:
+            insert_query = processed_agent_data.insert().values(
+                agent_data_to_dict(instance)
+            )
+
+            session.execute(insert_query)
+
+        session.commit()
+
+    return {"success": True}
 
 
 @app.get(
@@ -136,14 +158,23 @@ async def create_processed_agent_data(data: List[ProcessedAgentData]):
     response_model=ProcessedAgentDataInDB,
 )
 def read_processed_agent_data(processed_agent_data_id: int):
-    # Get data by id
-    pass
+    with SessionLocal() as session:
+        select_query = processed_agent_data.select().filter_by(
+            id=processed_agent_data_id
+        )
+
+        result = session.execute(select_query).one()
+
+    return result
 
 
 @app.get("/processed_agent_data/", response_model=list[ProcessedAgentDataInDB])
 def list_processed_agent_data():
-    # Get list of data
-    pass
+    with SessionLocal() as session:
+        select_query = processed_agent_data.select()
+        result = session.execute(select_query).all()
+
+    return result
 
 
 @app.put(
@@ -151,8 +182,20 @@ def list_processed_agent_data():
     response_model=ProcessedAgentDataInDB,
 )
 def update_processed_agent_data(processed_agent_data_id: int, data: ProcessedAgentData):
-    # Update data
-    pass
+    with SessionLocal() as session:
+        all_columns = processed_agent_data._columns
+
+        delete_query = processed_agent_data.update().filter_by(
+            id=processed_agent_data_id
+        ).values(
+            agent_data_to_dict(data)
+        ).returning(all_columns)
+
+        result = session.execute(delete_query).fetchone()
+
+        session.commit()
+
+    return result
 
 
 @app.delete(
@@ -160,8 +203,18 @@ def update_processed_agent_data(processed_agent_data_id: int, data: ProcessedAge
     response_model=ProcessedAgentDataInDB,
 )
 def delete_processed_agent_data(processed_agent_data_id: int):
-    # Delete by id
-    pass
+    with SessionLocal() as session:
+        all_columns = processed_agent_data._columns
+
+        delete_query = processed_agent_data.delete().filter_by(
+            id=processed_agent_data_id
+        ).returning(all_columns)
+
+        result = session.execute(delete_query).fetchone()
+
+        session.commit()
+
+    return result
 
 
 if __name__ == "__main__":
