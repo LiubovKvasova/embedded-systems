@@ -185,13 +185,13 @@ def update_processed_agent_data(processed_agent_data_id: int, data: ProcessedAge
     with SessionLocal() as session:
         all_columns = processed_agent_data._columns
 
-        delete_query = processed_agent_data.update().filter_by(
+        update_query = processed_agent_data.update().filter_by(
             id=processed_agent_data_id
         ).values(
             agent_data_to_dict(data)
         ).returning(all_columns)
 
-        result = session.execute(delete_query).fetchone()
+        result = session.execute(update_query).fetchone()
 
         session.commit()
 
