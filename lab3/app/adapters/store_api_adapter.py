@@ -14,10 +14,10 @@ class StoreApiAdapter(StoreGateway):
         self.api_base_url = api_base_url
 
     def save_data(self, processed_agent_data_batch: List[ProcessedAgentData]) -> bool:
-        request_body_json = [agent_data.model_dump() for agent_data in processed_agent_data_batch]
+        request_body_json = pydantic_core.to_jsonable_python(processed_agent_data_batch)
 
         response = requests.post(
-            f"{self.api_base_url}/agent_data",
+            f"{self.api_base_url}/processed_agent_data/",
             json=request_body_json
         )
 

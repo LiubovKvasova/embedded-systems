@@ -4,6 +4,7 @@ from domain.accelerometer import Accelerometer
 from domain.gps import Gps
 from domain.parking import Parking
 from domain.aggregated_data import AggregatedData
+from domain.processed_agent_data import ProcessedAgentData
 import config
 
 
@@ -59,16 +60,22 @@ class FileDatasource:
         # Default value
         return Parking(6, gps_data)
 
-    def read(self) -> AggregatedData:
+    def read(self) -> ProcessedAgentData:
         """Метод повертає дані отримані з датчиків"""
         accelerometer_data = self.readAccelerometerData()
-        parking_data = self.readParkingData()
+        # parking_data = self.readParkingData()
+        gps_data = self.readGpsData()
 
-        return AggregatedData(
-            accelerometer_data,
-            parking_data,
-            datetime.now(),
+        agent_data = AggregatedData(
             config.USER_ID,
+            accelerometer_data,
+            gps_data,
+            datetime.now(),
+        )
+
+        return ProcessedAgentData(
+            config.ROAD_STATE,
+            agent_data
         )
 
     def startReading(self, *args, **kwargs):
