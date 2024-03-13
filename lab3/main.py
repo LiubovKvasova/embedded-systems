@@ -74,14 +74,16 @@ def on_message(client, userdata, msg):
         redis_client.lpush(
             "processed_agent_data", processed_agent_data.model_dump_json()
         )
-        processed_agent_data_batch: List[ProcessedAgentData] = []
+
         if redis_client.llen("processed_agent_data") >= BATCH_SIZE:
+            processed_agent_data_batch: List[ProcessedAgentData] = []
             for _ in range(BATCH_SIZE):
                 processed_agent_data = ProcessedAgentData.model_validate_json(
                     redis_client.lpop("processed_agent_data")
                 )
                 processed_agent_data_batch.append(processed_agent_data)
-        store_adapter.save_data(processed_agent_data_batch=processed_agent_data_batch)
+            store_adapter.save_data(processed_agent_data_batch=processed_agent_data_batch)
+
         return {"status": "ok"}
     except Exception as e:
         logging.info(f"Error processing MQTT message: {e}")
