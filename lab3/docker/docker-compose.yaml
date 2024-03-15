@@ -85,7 +85,7 @@ services:
     environment:
       STORE_API_HOST: store
       STORE_API_PORT: 8000
-      REDIS_HOST: "redis"
+      REDIS_HOST: redis
       REDIS_PORT: 6379
       MQTT_BROKER_HOST: "mqtt"
       MQTT_BROKER_PORT: 1883
